@@ -1,0 +1,22 @@
+management:
+  sysIP: 1.1.1.2/32
+
+ports:
+  - id: 2-1
+    encap: null
+    vlan: 10
+
+router_interface:
+  - IntName: 1
+    IP: 10.1.2.1/30
+    port: 2-1
+    encapNull: True 
+    encap: null
+    vlan: 10
+    rtrInstance: 0
+    ospfArea: 0
+
+router_mpls:
+  - peerNode: 1
+    IntName: 1
+    peerSysIP: 1.1.1.1/32

@@ -1,0 +1,21 @@
+dut:
+node 1  135.241.247.1 auto 7x50
+node 2  135.241.247.2 auto 7x50
+node 3  135.241.247.3 auto 7x50
+node 4  135.241.247.4 auto 7x50
+:dut
+
+
+netlist:
+1 2 auto auto ge 1-2 2-1 null 10 0 0
+3 4 auto auto ge 3-4 4-3 dot1q 10 0 0
+1 3 auto auto ge 1-3 1-3 dot1q 10 0 0
+1 4 auto auto ge 1-4 1-4 dot1q 10 0 0
+:netlist
+
+
+
+bgp-start
+bla bla
+bla bla
+bgp-end

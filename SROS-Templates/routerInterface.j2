@@ -1,0 +1,77 @@
+
+{% for port in config.ports %}
+/config port {{ port.id }}
+	ethernet
+		mode network
+		description {{ port.desc }}
+		encap {{ port.encap }}
+	exit
+no shutdown
+{% endfor %}
+
+/config router
+	interface system 
+		address {{ config.management.sysIP }}
+		no shutdown
+	exit
+{%- for routerInt in config.router_interface %}
+	interface to{{ routerInt.IntName }}
+		address {{ routerInt.IP }}
+		{% if routerInt.encap == None -%}
+		port {{ routerInt.port }}
+		{%- else -%}
+		port {{ routerInt.port }}:{{ routerInt.vlan }}
+		{%- endif %}
+		no shutdown
+	exit
+{% endfor %}
+
+/config router mpls
+            path "dynamic"
+                no shutdown
+            exit
+            interface system
+                no shutdown
+            exit
+{% for routerMpls in config.router_mpls %}
+			interface to{{ routerMpls.IntName }}
+				no shutdown
+			exit
+{%- endfor %}
+			no shutdown
+{% for routerMpls in config.router_mpls %}
+			lsp to{{ routerMpls.IntName }}
+				to {{ routerMpls.peerSysIP }}
+				cspf
+				fast-reroute one-to-one
+            	exit
+            	primary "dynamic"
+            	exit
+				no shutdown
+			exit
+{%- endfor %}
+			no shutdown
+
+
+/config router rsvp
+            interface system
+                no shutdown
+            exit
+{%- for routerMpls in config.router_mpls %}
+			interface to{{ routerMpls.IntName }}
+				no shutdown
+			exit
+{%- endfor %}
+			no shutdown
+
+{% for routerMpls in config.router_mpls %}
+/config service
+        sdp {{ routerMpls.IntName }}
+        far-end {{ routerMpls.peerSysIP }}
+        lsp to{{ routerMpls.IntName }}
+        keep-alive
+        	no shutdown
+        exit
+        no shutdown
+    exit
+{%- endfor %}

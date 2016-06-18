@@ -1,0 +1,8 @@
+
+{% for port in port_list %}
+/config port {{ port.id }}
+	      ethernet
+	      mode network
+  	      description {{ port.desc }}
+  	      encap {{ port.encap }}
+{% endfor %}
