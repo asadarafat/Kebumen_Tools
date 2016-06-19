@@ -1,0 +1,6 @@
+# Welcome to Kebumen Tools
+This tools is Python based automation script to create configuration files for Nokia's SROS router from your network connectivity model.
+The input of of this tools is a model describing your networks (netlist) and a configuration template.
+The workflow of this tools is:
+	first, parsing the network connectivity model files to gatther all data and store it in YAML file.
+	then automate config creation by dynamically inserting data from YAML file into a configuration template(Jinja2 file)
