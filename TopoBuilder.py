@@ -156,7 +156,8 @@ def createYaml(dut):
     x = open('configVar.yaml','w')
     # Create yaml for management
     x.write('management:'+'\n')
-    x.write('  sysIP: '+'1.1.1.'+getOctetIP(MydutInfo[0][1])[3]+'/32'+'\n')
+    x.write('  DUT: '+dut+'\n')
+    x.write('  sysIP: '+'1.1.1.'+getOctetIP(MydutInfo[0][1])[3]+'\n')
     x.write('\n')
     
     # Create yaml for port
@@ -189,7 +190,7 @@ def createYaml(dut):
     for item in SegmentDutSegmentDutInfo:
         x.write('  - peerNode: '+getOctetIP(getDutInfo(item[0])[0][1])[3]+'\n' )
         x.write('    IntName: '+item[0][0]+'\n')
-        x.write('    peerSysIP: '+'1.1.1.'+getOctetIP(getDutInfo(item[0])[0][1])[3]+'/32'+'\n' )
+        x.write('    peerSysIP: '+'1.1.1.'+getOctetIP(getDutInfo(item[0])[0][1])[3]+'\n' )
 
     x.close()
 def RenderConfig(dut):   
@@ -198,12 +199,13 @@ def RenderConfig(dut):
     ENV = Environment(loader=FileSystemLoader('./SROS-Templates/'))
     template = ENV.get_template('routerInterface.j2')
     pprint (yamlConfig)
+    pprint (yamlConfig["router_interface"][0]["ospfArea"])
     #print(template.render(yamlConfig["management"]))
-    pprint( [i for n, i in enumerate(yamlConfig["ports"]) if i not in yamlConfig["ports"][n + 1:]] )
+    #pprint( [i for n, i in enumerate(yamlConfig["ports"]) if i not in yamlConfig["ports"][n + 1:]] )
     print(template.render(config=yamlConfig))
 
 def main():
-    dut = '2'
+    dut = '1'
     RenderConfig(dut) 
 
 main()

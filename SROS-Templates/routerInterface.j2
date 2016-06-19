@@ -11,7 +11,7 @@ no shutdown
 
 /config router
 	interface system 
-		address {{ config.management.sysIP }}
+		address {{ config.management.sysIP }}/32
 		no shutdown
 	exit
 {%- for routerInt in config.router_interface %}
@@ -26,6 +26,28 @@ no shutdown
 	exit
 {% endfor %}
 
+
+/config router ospf
+            traffic-engineering
+            timers
+                spf-wait 2000 50 100
+                lsa-generate 8000 10 1000
+            exit
+			area 0 
+				interface system
+ 					no shutdown
+ 				exit
+{%- for routerInt in config.router_interface %}
+/config router ospf {{ routerInt.rtrInstance }}
+			area {{ routerInt.ospfArea }}
+				interface to{{ routerInt.IntName }}
+ 					no shutdown
+ 				exit
+{%- endfor %}
+
+
+     
+
 /config router mpls
             path "dynamic"
                 no shutdown
@@ -33,13 +55,13 @@ no shutdown
             interface system
                 no shutdown
             exit
-{% for routerMpls in config.router_mpls %}
+{%- for routerMpls in config.router_mpls %}
 			interface to{{ routerMpls.IntName }}
 				no shutdown
 			exit
 {%- endfor %}
 			no shutdown
-{% for routerMpls in config.router_mpls %}
+{%- for routerMpls in config.router_mpls %}
 			lsp to{{ routerMpls.IntName }}
 				to {{ routerMpls.peerSysIP }}
 				cspf
@@ -68,6 +90,7 @@ no shutdown
 /config service
         sdp {{ routerMpls.IntName }}
         far-end {{ routerMpls.peerSysIP }}
+        desc from-{{ config.management.sysIP }}_to_{{ routerMpls.peerSysIP }}
         lsp to{{ routerMpls.IntName }}
         keep-alive
         	no shutdown
