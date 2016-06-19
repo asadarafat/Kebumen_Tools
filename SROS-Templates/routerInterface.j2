@@ -1,29 +1,73 @@
+/bof persist on
+/configure system 
+        name {{ config.management.DUT }}
+        login-control
+            idle-timeout 1440
+        exit
+        time
+            ntp
+                no authentication-check
+                server 138.120.105.64 
+                server 138.120.105.74
+                no shutdown 
+            exit
+            sntp
+                server-address 138.120.105.64 preferred
+                shutdown
+            exit
+            zone GMT +8
+        exit
+        security
+            #telnet-server
+            #ftp-server
+            user "admin"
+                access console ftp snmp 
+            exit
+            snmp
+                community private rwa version both
+            exit
+        exit
+        snmp
+            packet-size 9216
+            no shutdown
+        exit
+    exit
+    router
+		interface system 
+			address {{ config.management.sysIP }}/32
+			no shutdown
+		exit
 
 {% for port in config.ports %}
 /config port {{ port.id }}
-	ethernet
-		mode network
-		description {{ port.desc }}
-		encap {{ port.encap }}
-	exit
-no shutdown
+		ethernet
+			mode network
+			description {{ port.desc }}
+			encap {{ port.encap }}
+		    mtu 9212
+            lldp
+                dest-mac nearest-bridge
+                    admin-status tx-rx
+                    notification
+                    tx-tlvs port-desc sys-name sys-desc sys-cap
+                    tx-mgmt-address system
+                exit
+            exit
+		exit
+	no shutdown
 {% endfor %}
 
 /config router
-	interface system 
-		address {{ config.management.sysIP }}/32
-		no shutdown
-	exit
 {%- for routerInt in config.router_interface %}
-	interface to{{ routerInt.IntName }}
-		address {{ routerInt.IP }}
-		{% if routerInt.encap == None -%}
-		port {{ routerInt.port }}
-		{%- else -%}
-		port {{ routerInt.port }}:{{ routerInt.vlan }}
-		{%- endif %}
-		no shutdown
-	exit
+		interface to{{ routerInt.IntName }}
+			address {{ routerInt.IP }}
+			{% if routerInt.encap == None -%}
+			port {{ routerInt.port }}
+			{%- else -%}
+			port {{ routerInt.port }}:{{ routerInt.vlan }}
+			{%- endif %}
+			no shutdown
+		exit
 {% endfor %}
 
 

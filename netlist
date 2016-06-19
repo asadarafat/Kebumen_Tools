@@ -1,8 +1,13 @@
 ##############################################################################
+# This tool is inspired from Batu_Tools, similar functionality but written in TCL
+##############################################################################
+
+
+##############################################################################
 # STEP 1: List all nodes
 # 
 # SYNTAX:
-#    set node(a) {managementIP SystemIP}
+#    set node(a) {managementIP SystemIP type}
 #
 # DESCRIPTION:
 #    systemIP: you can specify an IP or leave it "auto" and let the "topobuilder"
@@ -11,10 +16,10 @@
 #    type:     if it's not specified, it's considered 7x50
 ###############################################################################
 dut:
-node 1  135.241.247.1 auto 7x50
-node 2  135.241.247.2 auto 7x50
-node 3  135.241.247.3 auto 7x50
-node 4  135.241.247.4 auto 7x50
+node 111  135.241.247.11 auto 		7x50
+node 222  135.241.247.22 2.2.2.22 	7x50
+node 333  135.241.247.33 auto 		7x50
+node 444  135.241.247.44 auto 		7x50
 :dut
 
 ###############################################################################
@@ -37,15 +42,15 @@ node 4  135.241.247.4 auto 7x50
 #    ident:        none or vlanID if the encap is dot1q
 #    instance:     router instance 
 #    ospf-area:    if it's not specified, it's considered area 0
-#    isis-level:   1, 2, or 1/2. If it's not specified, it's considered as 1/2
+#    isis-level:   1, 2, or 1/2. If it's not specified, it's considered as 1/2 @aarafat-tag: To be done
 #                  This is level-capability per link (i.e., segment), which 
 #                  is 1/2 by default
 ###############################################################################
 netlist:
-1 2 auto auto ge 1-2 2-1 null  10 1 1
-3 4 auto auto ge 3-4 4-3 dot1q 10 0 0
-1 3 auto auto ge 1-3 1-3 dot1q 10 0 0
-1 4 auto auto ge 1-4 1-4 dot1q 10 0 0
+111 222 auto auto ge 1-2 2-1 null  10 1 0 2
+333 444 auto auto ge 3-4 4-3 dot1q 10 0 0 2
+111 333 auto auto ge 1-3 3-1 dot1q 10 0 2 1
+111 444 auto auto ge 1-4 4-1 dot1q 10 0 0 2
 :netlist
 
 ##############################################################################
@@ -55,30 +60,23 @@ netlist:
 #         Auto Mesh Tunnel is also supported
 # DESCRIPTION:
 #    ldp below refers to interface LDP.
+# 
+# @aarafat-tag: To be done
 ###############################################################################
-set enable(port)              true
-set enable(lldp)              true
-set enable(network-interface) true
-set enable(ospf)              true
-set enable(isis)              false
-set enable(ldp)               true
-set enable(rsvp)              true
-set enable(bfd)               {all}    
-set enable(md5)               {all}    
-set enable(md5,secret)        alcatel
+knob:
+set port              true
+set lldp              true
+set network-interface true
+set ospf              true
+set isis              false
+set ldp               true
+set rsvp              true
+set bfd               {all}    
+set md5               {all}    
+set md5,secret        alcatel
 
 # Mesh Tunnel
 set mesh(sdp,gre)    false
 set mesh(sdp,ldp)    true
 set mesh(sdp,rsvp)   false
-
-
-bgp-start
-bla bla
-bla bla
-bgp-end
-
-asad
-asad
-asad
-asad
+:knob

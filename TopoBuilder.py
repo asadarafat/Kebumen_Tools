@@ -98,19 +98,18 @@ def getDutSegmentInfo(dut):
     segmentEncap = []
     segmentVlan = []
     segmentOspf = []
+    segmentIsis = []
     segmentRtrInstance = []
+
+    segmentInfo = []
+
     for line in nl:
         if re.search('\S', line):
             nlElement = str.split(line)
-            segmentIP.append([nlElement[2],nlElement[3]])
-            segmentPort.append([nlElement[5],nlElement[6]])
-            segmentEncap.append([nlElement[7],nlElement[7]])
-            segmentVlan.append([nlElement[8],nlElement[8]])
-            segmentRtrInstance.append([nlElement[9],nlElement[9]])
-            segmentOspf.append([nlElement[10],nlElement[10]])
-    segment=getSegment()
-    segmentIP = map(add, segment, segmentIP)
-    for item in segmentIP:
+            segmentInfo.append([nlElement[0],nlElement[1],nlElement[2],nlElement[3],nlElement[4],nlElement[5],nlElement[6],nlElement[7],nlElement[7],nlElement[8],nlElement[8],nlElement[9],nlElement[9],nlElement[10],nlElement[10],nlElement[11],nlElement[11]])
+    #pprint (nl)
+    #pprint (segmentInfo)
+    for item in segmentInfo:
         if item[2] == 'auto':
             if item[0] > item[1]:
                 item[2] = '10.'+item[1]+'.'+item[0]+'.2'
@@ -121,23 +120,20 @@ def getDutSegmentInfo(dut):
             if item[0] > item[1]:
                 item[3] = '10.'+item[1]+'.'+item[0]+'.1'
             else:
-                item[3] = '10.'+item[0]+'.'+item[1]+'.1'     
-    segmentInfo = map(add, segmentIP, segmentPort)
-    segmentInfo = map(add, segmentInfo, segmentEncap)
-    segmentInfo = map(add, segmentInfo, segmentVlan)
-    segmentInfo = map(add, segmentInfo, segmentRtrInstance)
-    segmentInfo = map(add, segmentInfo, segmentOspf)
-
+                item[3] = '10.'+item[0]+'.'+item[1]+'.1'
+    #print 'segmentInfo:'
+    #pprint (segmentInfo)
     MyDutSegmentInfo = []
     for i in segmentInfo:
         if i[0] == dut:
-            MyDutSegmentInfo.append([i[2],i[4],i[6],i[8],i[10],i[12]])
+            MyDutSegmentInfo.append([i[2],i[4],i[5],i[7],i[9],i[11],i[13],i[15]])
         if i[1] == dut:
-            MyDutSegmentInfo.append([i[3],i[5],i[7],i[9],i[11],i[13]])
+            MyDutSegmentInfo.append([i[3],i[4],i[6],i[8],i[10],i[12],i[14],i[16]])
+    #print ('MyDutSegmentInfo:')
     #pprint (MyDutSegmentInfo)
       
     if MyDutSegmentInfo == []:
-        print 'no Segment dut Info, check Netlsit'
+        print 'no Segment dut Info, check Netlist and Dut'
     else: 
         return MyDutSegmentInfo  
 
@@ -152,20 +148,32 @@ def createYaml(dut):
     SegmentDutSegmentDutInfo = zip(getSegmentDut(dut), getDutSegmentInfo(dut))
     nl=getNetworklist()
     segment=getSegment()
-    
+
+    print 'getDutInfo'
+    pprint (MydutInfo)
+    print 'getSegmentDut'
+    pprint(getSegmentDut(dut))
+    print 'SegmentDutSegmentDutInfo'
+    pprint(SegmentDutSegmentDutInfo)
+
+
     x = open('configVar.yaml','w')
     # Create yaml for management
     x.write('management:'+'\n')
     x.write('  DUT: '+dut+'\n')
-    x.write('  sysIP: '+'1.1.1.'+getOctetIP(MydutInfo[0][1])[3]+'\n')
+    if MydutInfo[0][2] == 'auto':
+        x.write('  sysIP: '+'1.1.1.'+getOctetIP(MydutInfo[0][1])[3]+'\n')
+    else:
+        x.write('  sysIP: '+MydutInfo[0][2])
     x.write('\n')
     
     # Create yaml for port
     x.write('ports:'+'\n')
     for item in SegmentDutSegmentDutInfo:
-        x.write('  - id: '+item[1][1]+'\n')
-        x.write('    encap: '+item[1][2]+'\n')
-        x.write('    vlan: '+item[1][3]+'\n')
+        x.write('  - id: '+item[1][2]+'\n')
+        x.write('    encap: '+item[1][3]+'\n')
+        x.write('    type: '+item[1][1]+'\n')
+        x.write('    vlan: '+item[1][4]+'\n')
     x.write('\n')
     
     # Create yaml for router interface    
@@ -173,24 +181,30 @@ def createYaml(dut):
     for item in SegmentDutSegmentDutInfo:
         x.write('  - IntName: '+item[0][0]+'\n')
         x.write('    IP: '+item[1][0]+'/30'+'\n')
-        x.write('    port: '+item[1][1]+'\n')
+        x.write('    port: '+item[1][2]+'\n')
         if item[1][2] == 'null':
             x.write('    encapNull: True '+'\n')
-            x.write('    encap: '+item[1][2]+'\n')
+            x.write('    encap: '+item[1][3]+'\n')
         else:
-            x.write('    encap: '+item[1][2]+'\n')
-        x.write('    vlan: '+item[1][3]+'\n')
-        x.write('    rtrInstance: '+item[1][4]+'\n')
-        x.write('    ospfArea: '+item[1][5]+'\n')      
+            x.write('    encap: '+item[1][3]+'\n')
+        x.write('    vlan: '+item[1][4]+'\n')
+        x.write('    rtrInstance: '+item[1][5]+'\n')
+        x.write('    ospfArea: '+item[1][6]+'\n')   
+        x.write('    isisLevel: '+item[1][7]+'\n')      
     
     
     # Create yaml for router mpls    
     x.write('\n')
     x.write('router_mpls:'+'\n')
+    #print 'SegmentDutSegmentDutInfo_dut'
+    #pprint (SegmentDutSegmentDutInfo[0][0])
     for item in SegmentDutSegmentDutInfo:
         x.write('  - peerNode: '+getOctetIP(getDutInfo(item[0])[0][1])[3]+'\n' )
         x.write('    IntName: '+item[0][0]+'\n')
-        x.write('    peerSysIP: '+'1.1.1.'+getOctetIP(getDutInfo(item[0])[0][1])[3]+'\n' )
+        if getDutInfo(item[0])[0][2] == 'auto':
+            x.write('    peerSysIP: '+'1.1.1.'+getOctetIP(getDutInfo(item[0])[0][1])[3]+'\n' )
+        else:
+            x.write('    peerSysIP: '+getDutInfo(item[0])[0][2]+'\n' )
 
     x.close()
 def RenderConfig(dut):   
@@ -199,13 +213,13 @@ def RenderConfig(dut):
     ENV = Environment(loader=FileSystemLoader('./SROS-Templates/'))
     template = ENV.get_template('routerInterface.j2')
     pprint (yamlConfig)
-    pprint (yamlConfig["router_interface"][0]["ospfArea"])
+    #pprint (yamlConfig["router_interface"][0]["ospfArea"])
     #print(template.render(yamlConfig["management"]))
     #pprint( [i for n, i in enumerate(yamlConfig["ports"]) if i not in yamlConfig["ports"][n + 1:]] )
     print(template.render(config=yamlConfig))
 
 def main():
-    dut = '1'
+    dut = '111'
     RenderConfig(dut) 
 
 main()
